@@ -9,17 +9,25 @@ describe('Digitar e enviar formulario', () => {
     cy.title().should('eq', 'Central de Atendimento ao Cliente TAT')
   })
 
-  it ('preenche os campos obrigatórios e envia o formulário', () => {
+  Cypress._.times(5, () => {
+  it('preenche os campos obrigatórios e envia o formulário', () => {
+    
+    cy.clock()
     cy.get('#firstName').type('Felipe')
     cy.get('#lastName').type('Diniz')
     cy.get('#email').type('felipeadiniz@gmail.com')
     cy.get('#open-text-area').type('Mim dê Cypress, pra que eu possa ganhar um salario daora, sair de casa, viajar, pagar minhas contas, e mostrar pra Veronica e pra mim mesmo que eu sou capaz, que consigo viver feliz, provar que ela e os pais estavam errados, e que me abandonar foi um erro', { delay: 0 })
     cy.contains('button', 'Enviar').click()
-
+    
     cy.get('.success').should('be.visible')
+    
+    cy.tick(3000)
+    cy.get('.success').should('not.be.visible')
   })
+})
 
   it ('exibe mensagem de erro ao submeter o formulário com um email com formatação inválida', () => {
+    cy.clock()
     cy.get('#firstName').type('Felipe')
     cy.get('#lastName').type('Diniz')
     cy.get('#email').type('felipeadiniz2gmail.com')
@@ -27,13 +35,15 @@ describe('Digitar e enviar formulario', () => {
     cy.contains('button', 'Enviar').click()
 
     cy.get('.error').should('be.visible')
-
+    cy.tick(3000)
+    cy.get('.error').should('not.be.visible')
   })
   it('verifica se telefone não possui valores não numéricos', () => {
     cy.get('#phone').type('abcde!@#$%^&').should('have.value', '')
   })
   
   it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', () => {
+    cy.clock()
     cy.get('#firstName').type('Felipe')
     cy.get('#lastName').type('Diniz')
     cy.get('#email').type('felipeadiniz@gmail.com')
@@ -44,6 +54,8 @@ describe('Digitar e enviar formulario', () => {
     
 
     cy.get('.error').should('be.visible')
+    cy.tick(3000)
+    cy.get('.error').should('not.be.visible')
   })
   it('preenche e limpa os campos nome, sobrenome, email e telefone', () => {
     cy.get('#firstName').type('Felipe').should('have.value', 'Felipe')
@@ -58,19 +70,22 @@ describe('Digitar e enviar formulario', () => {
     
   })
   it ('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios', () => {
-
+    cy.clock()
     cy.contains('button', 'Enviar').click()
 
     cy.get('.error').should('be.visible')
+    cy.tick(3000)
+    cy.get('.error').should('not.be.visible')
   })
   it('envia o formuário com sucesso usando um comando customizado', () => {
     
-  
+    cy.clock()
     cy.fillMandatoryFieldsAndSubmit()
 
    
     cy.get('.success').should('be.visible')
-
+    cy.tick(3000)
+    cy.get('.success').should('not.be.visible')
   })
   it('seleciona um produto (YouTube) por seu texto', () => {
     
@@ -174,5 +189,44 @@ describe('Digitar e enviar formulario', () => {
       
       
   })
-  
+  it('exibe e oculta as mensagens de sucesso e erro usando .invoke()', () => {
+    cy.get('.success')
+      .should('not.be.visible')
+      .invoke('show')
+      .should('be.visible')
+      .and('contain', 'Mensagem enviada com sucesso.')
+      .invoke('hide')
+      .should('not.be.visible')
+    cy.get('.error')
+      .should('not.be.visible')
+      .invoke('show')
+      .should('be.visible')
+      .and('contain', 'Valide os campos obrigatórios!')
+      .invoke('hide')
+      .should('not.be.visible')
+  })
+  it('preenche o campo da área de texto usando o comando invoke', () => {
+    cy.get('#open-text-area').invoke('val', 'um texto qualquer')
+    .should('have.value', 'um texto qualquer')
+  })
+
+  it('faz uma requisição HTTP', () => {
+    cy.request({
+      method: 'GET',
+      url: 'https://cac-tat-v3.s3.eu-central-1.amazonaws.com/index.html'
+    }).then((response) => {
+      expect(response.status).to.equal(200);
+      expect(response.statusText).to.equal('OK')
+      expect(response.body).to.contains('CAC TAT') 
+    })
+  })
+  it('Encontra o Gato', () => {
+    cy.get('#cat').invoke('show')
+    .should('be.visible')
+
+    cy.get('#title').invoke('text', 'CAT TAT')
+    cy.get('#subtitle').invoke('text', 'Eu <3 gatos')
+  })
+
+
 })
